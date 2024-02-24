@@ -9,6 +9,13 @@ interface collateralToken{
     external 
     returns(bool);
 
+    function name() external returns(string memory);
+
+}
+
+interface IDIAOracleV2
+{
+    function getValue(string memory) external returns (uint128, uint128);
 }
 
 interface ILendingPool{
@@ -56,6 +63,7 @@ interface ILendingPool{
 contract draft is Ownable {
 
     error CollateralDepositionFailed();
+    error BreaksHealthFactor(uint256);
 
     event CollateralDeposited(address indexed tokenAddress, address indexed user);
     event CollateralAdded(address indexed tokenAddress);
@@ -73,8 +81,14 @@ contract draft is Ownable {
         _;
     }
 
+    uint256 private constant LIQUIDATION_THRESHOLD = 80;
+    uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant PRECISION = 1e18;
+    uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     uint256 public tokenThreshold; //The threshold value for the RWA tokens
     uint256 public recievedValue;  //The recived USD value from the oracle
+    address public oracleAddress; //stpres the oracle address
+    uint256 public latestPrice;  //stores the latest price fetched from the oracle
 
     mapping (address => uint256) public allowedCollateralTokens;
 
@@ -107,6 +121,8 @@ contract draft is Ownable {
     moreThanZero(amount) 
     isAllowedToken(token)
     {
+        s_BorrowAmount[user] += amount;
+        revertIfHealthFactorIsBroken(user, token);
         depositCollateral(token, amount, user);
         ILendingPool(pool).borrow(token, amount, rateMode, 0, user);
     }
@@ -127,6 +143,12 @@ contract draft is Ownable {
         emit CollateralRemoved(_newAddress);
     }
 
+    function changeOracleAddress(address _newAddress)
+    external
+    onlyOwner{
+        oracleAddress = _newAddress;
+    }
+
     ///////////////////////////
     /// Internal Functions ///
     //////////////////////////
@@ -136,9 +158,67 @@ contract draft is Ownable {
     {
         bool success = collateralToken(_tokenAddress).transferFrom(msg.sender, address(this), amountToken);
         s_collateralDeposited[_user][_tokenAddress] = amountToken;
-        if( !success){
+        if(!success){
             revert CollateralDepositionFailed();
         }
         emit CollateralDeposited(_tokenAddress, _user);
     }
+
+
+    //////////////////////////////////////////////////
+    /// Private & Internal View && Pure functions ///
+    /////////////////////////////////////////////////\
+
+    function getUSDValue(address _token)
+    private
+    returns(uint256)
+    {
+        string memory tokenName = collateralToken(_token).name();
+        string memory key = string.concat(tokenName, "/USD");
+        (latestPrice, ) = IDIAOracleV2(oracleAddress).getValue(key);
+        return latestPrice;
+    }
+
+
+    function getCollateralValueOfUser(address _token, address _user)
+    private 
+    returns(uint256 borrowAmount, uint256 userCollateralValue)
+    {
+        borrowAmount = s_BorrowAmount[_user];
+        userCollateralValue = getUSDValue(_token);
+    }
+
+    function _calculateHealthFactor(uint256 totalBorrowed, uint256 collateralValueInUSD)
+    private
+    pure
+    returns(uint256)
+    {
+        if(totalBorrowed == 0) 
+        {
+            return type(uint256).max;
+        }
+        uint256 collateralAdjustedForThreshold = (collateralValueInUSD * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        return (collateralAdjustedForThreshold * PRECISION) / totalBorrowed; 
+
+    }
+
+    function _healthFactor(address collateralAddress, address user)
+    private
+    returns(uint256){
+        (uint256 totalBorrowed, uint256 collateralValueInUsd) = getCollateralValueOfUser(collateralAddress, user);
+        return  _calculateHealthFactor(totalBorrowed, collateralValueInUsd);
+    }
+
+    function revertIfHealthFactorIsBroken(address user, address _collateralToken)
+    private
+    {
+        uint256 userHealthFactor = _healthFactor(_collateralToken, user);
+        if(userHealthFactor < MIN_HEALTH_FACTOR)
+        {
+            revert BreaksHealthFactor(userHealthFactor);
+        }
+
+    }
+
+
 }
