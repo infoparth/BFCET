@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
-import {ILendingPool} from "@starlay-finance/starlay-protocol/contracts/interfaces/ILendingPool.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-interface collateralToken is Ownable{
+interface collateralToken{
 
     function transferFrom(address from, address to, uint256 amount) 
     external 
@@ -13,30 +12,81 @@ interface collateralToken is Ownable{
 
 }
 
-contract draft {
+interface ILendingPool{
+
+    function deposit(
+    address asset,
+    uint256 amount,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
+   function borrow(
+    address asset,
+    uint256 amount,
+    uint256 interestRateMode,
+    uint16 referralCode,
+    address onBehalfOf
+  ) external;
+
+  function repay(
+    address asset,
+    uint256 amount,
+    uint256 rateMode,
+    address onBehalfOf
+  ) external returns (uint256);
+
+  function getUserAccountData(address user)
+    external
+    view
+    returns (
+      uint256 totalCollateralETH,
+      uint256 totalDebtETH,
+      uint256 availableBorrowsETH,
+      uint256 currentLiquidationThreshold,
+      uint256 ltv,
+      uint256 healthFactor
+    );
+
+    function getUserConfiguration(address user)
+    external
+    view
+    returns (uint256);
+}
+
+contract draft is Ownable {
 
     modifier moreThanZero(uint256 amount){
 
-        requrie(amount > 0, "Amount needs to be more than zero");
+        require(amount > 0, "Amount needs to be more than zero");
         _;
 
     }
 
     modifier isAllowedToken(address _token){
-        requrie(allowedCollateralTokens[_token] == true, "Token address is allowed");
+        require(allowedCollateralTokens[_token] != 0, "Token address is allowed");
         _;
     }
 
-    mapping (address => bool) public allowedCollateralTokens;
+    uint256 public tokenThreshold; //The threshold value for the RWA tokens
+    uint256 public recievedValue;  //The recived USD value from the oracle
 
-    constructor()
+    mapping (address => uint256) public allowedCollateralTokens;
+
+    mapping(address user => mapping(address collateralToken => uint256 amount)) private s_collateralDeposited;
+    
+    mapping (address => uint256 amount) private s_BorrowAmount;
+
+
+
+    constructor(address _owner)Ownable(_owner)
     {}
 
     function depositCollateral(address _tokenAddress, uint256 amountToken)
     external
     moreThanZero(amountToken)
-    isAllowedToken(_tokenAddress){
-
+    isAllowedToken(_tokenAddress)
+    {
         bool success = collateralToken(_tokenAddress).transferFrom(msg.sender, address(this), amountToken);
     }
 
@@ -54,9 +104,17 @@ contract draft {
         ILendingPool(pool).borrow(token, amount, rateMode, 0, user);
     }
 
-    function addCollateralToken(address _newAddress)
+    function addCollateralToken(address _newAddress, uint256 thresholdAmount)
+    external
     onlyOwner
     {
+        allowedCollateralTokens[_newAddress] = thresholdAmount;
+    }
 
+    function removeCollateralToken(address _newAddress)
+    external
+    onlyOwner
+    {
+        delete allowedCollateralTokens[_newAddress];
     }
     }
