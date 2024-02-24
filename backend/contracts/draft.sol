@@ -11,6 +11,10 @@ interface collateralToken{
 
     function name() external returns(string memory);
 
+    function balanceOf(address user) external view returns(uint256);
+
+    function decimals() external view returns(uint8);
+
 }
 
 interface IDIAOracleV2
@@ -71,6 +75,8 @@ contract draft is Ownable {
     error CollateralDepositionFailed();
     error BreaksHealthFactor(uint256);
     error CollateralTokenWithdrawFailed();
+    error CollateralTokenTransferFailed();
+    error CollateralRepayError();
 
     event CollateralDeposited(address indexed tokenAddress, address indexed user);
     event CollateralAdded(address indexed tokenAddress);
@@ -97,8 +103,10 @@ contract draft is Ownable {
     uint256 public recievedValue;  //The recived USD value from the oracle
     address public oracleAddress; //stpres the oracle address
     uint256 public latestPrice;  //stores the latest price fetched from the oracle
+    address private s_lTokenAddress;
+    address public usdcCollateralAddress;
 
-    mapping (address => uint256) public allowedCollateralTokens;
+    mapping (address => uint8) public allowedCollateralTokens;
 
     mapping(address user => mapping(address collateralToken => uint256 amount)) private s_collateralDeposited;
     
@@ -135,11 +143,12 @@ contract draft is Ownable {
         ILendingPool(pool).borrow(token, amount, rateMode, 0, user);
     }
 
-    function addCollateralToken(address _newAddress, uint256 thresholdAmount)
+    function addCollateralToken(address _newAddress)
     external
     onlyOwner
     {
-        allowedCollateralTokens[_newAddress] = thresholdAmount;
+        uint8 _decimals = collateralToken(_newAddress).decimals();
+        allowedCollateralTokens[_newAddress] = _decimals;
         emit CollateralAdded(_newAddress);
     }
 
@@ -153,7 +162,8 @@ contract draft is Ownable {
 
     function changeOracleAddress(address _newAddress)
     external
-    onlyOwner{
+    onlyOwner
+    {
         oracleAddress = _newAddress;
     }
 
@@ -163,24 +173,52 @@ contract draft is Ownable {
     isAllowedToken(asset)
     returns(uint256 finalRepay) 
     {
-        finalRepay = ILendingPool(pool).repay(asset, amount, rateMode, user);
-        if(finalRepay > 0){
+        (bool success,bytes memory result) = pool.delegatecall(abi.encodeWithSignature("repay(address, uint256, uint256, address)", asset, amount, rateMode, user));
+        finalRepay = abi.decode(result, (uint256));
+        if(success && (finalRepay > 0)){
             s_BorrowAmount[user] -= finalRepay;
+        }
+        else{
+            revert CollateralRepayError();
         }
     }
 
-    function withdrawCollateral(address token, address user, uint256 amount)
+    function withdrawCollateral(address pool, address token, address user, uint256 amount)
     external
     moreThanZero(amount)
     isAllowedToken(token)
     {
 
-        s_collateralDeposited[user][token] -= amount;
-        bool success = collateralToken(token).transferFrom(address(this), user, amount);
-        if( !success ){
+        uint256 userBalance = collateralToken(s_lTokenAddress).balanceOf(msg.sender);
+        uint256 finalBalance = convertToSameUnit(token, userBalance);
+        uint256 finalValue = calculateRWAAmountfromUSD(finalBalance, token);
+        uint256 fixDecimals = convertToTokenDecimal(token, finalValue);
+
+        s_collateralDeposited[user][token] -= fixDecimals;
+        (bool success,) = pool.delegatecall(abi.encodeWithSignature("withdraw(address, uint256, address)", token, fixDecimals, address(this)));
+        if(!success){
             revert CollateralTokenWithdrawFailed();
         }
+        bool isSuccess = collateralToken(token).transferFrom(address(this), user, fixDecimals);
+        if( !isSuccess ){
+            revert CollateralTokenTransferFailed();
+        }
         revertIfHealthFactorIsBroken(user, token);
+    }
+
+    function setLTokenAddress(address _newAddress)
+    external
+    onlyOwner
+    {
+        s_lTokenAddress = _newAddress;
+    }
+
+    function setUSDCTokenaddress(address _newAddress)
+    external
+    onlyOwner
+    {
+
+        usdcCollateralAddress = _newAddress;
     }
 
     ///////////////////////////
@@ -198,6 +236,28 @@ contract draft is Ownable {
         emit CollateralDeposited(_tokenAddress, _user);
     }
 
+    function calculateRWAAmountfromUSD(uint256 amountInUsd, address tokenAddress)
+    private
+    returns(uint256 finalValue)
+    {
+        uint256 collateralUSDValue = getUSDValue(tokenAddress);
+        uint256 finalCollateralValue = convertToSameUnit(tokenAddress, collateralUSDValue); 
+        if(amountInUsd > finalCollateralValue){
+            finalValue = amountInUsd / collateralUSDValue;
+        }
+        else{
+            finalValue = amountInUsd;
+        }
+    }
+
+    function calculateUSDFromRWA(uint256 amountCollateral, address tokenAddress)
+    private
+    returns(uint256 finalValue)
+    {
+        uint256 collateralUSDValue = getUSDValue(tokenAddress);
+        finalValue = collateralUSDValue * amountCollateral;
+    }
+
 
     //////////////////////////////////////////////////
     /// Private & Internal View && Pure functions ///
@@ -210,6 +270,8 @@ contract draft is Ownable {
         string memory tokenName = collateralToken(_token).name();
         string memory key = string.concat(tokenName, "/USD");
         (latestPrice, ) = IDIAOracleV2(oracleAddress).getValue(key);
+
+
         return latestPrice;
     }
 
@@ -238,7 +300,8 @@ contract draft is Ownable {
 
     function _healthFactor(address collateralAddress, address user)
     private
-    returns(uint256){
+    returns(uint256)
+    {
         (uint256 totalBorrowed, uint256 collateralValueInUsd) = getCollateralValueOfUser(collateralAddress, user);
         return  _calculateHealthFactor(totalBorrowed, collateralValueInUsd);
     }
@@ -253,6 +316,43 @@ contract draft is Ownable {
         }
 
     }
+
+    function convertToSameUnit(address token, uint256 amount) 
+    private 
+    view 
+    returns (uint256) 
+    {
+
+    uint8 tokenDecimals = allowedCollateralTokens[token];
+    require(tokenDecimals <= 18, "Token decimals should be less than or equal to 18");
+    
+    // Calculate the conversion factor
+    uint256 conversionFactor = 10**(18 - uint256(tokenDecimals));
+    
+    // Convert the amount to 18 decimals
+    return amount * conversionFactor;
+
+    }
+
+    /* 
+    @notice: This function is used to take in a token address, and an amount, and it converts the amount 
+            back into the specified decimals, as it was in the collateral Contract
+    */
+    function convertToTokenDecimal(address _collateralAddres, uint256 _amountToBeConverted)
+        private 
+        view
+        returns(uint256)
+        {
+
+            uint8 tokenDecimals = allowedCollateralTokens[_collateralAddres];
+            require(tokenDecimals <= 18, "Token decimals should be less than or equal to 18");
+        
+            // Calculate the conversion factor
+            uint256 conversionFactor = (18 - uint256(tokenDecimals));
+        
+            // Convert the amount to desired decimals
+            return _amountToBeConverted / conversionFactor;
+        }
 
 
 }
