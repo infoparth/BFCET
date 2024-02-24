@@ -42,6 +42,12 @@ interface ILendingPool{
     address onBehalfOf
   ) external returns (uint256);
 
+   function withdraw(
+    address asset,
+    uint256 amount,
+    address to
+  ) external returns (uint256);
+
   function getUserAccountData(address user)
     external
     view
@@ -64,10 +70,12 @@ contract draft is Ownable {
 
     error CollateralDepositionFailed();
     error BreaksHealthFactor(uint256);
+    error CollateralTokenWithdrawFailed();
 
     event CollateralDeposited(address indexed tokenAddress, address indexed user);
     event CollateralAdded(address indexed tokenAddress);
     event CollateralRemoved(address indexed tokenAddress);
+    event CollateralWithdrawn(address indexed tokenAddress, address indexed user);
 
     modifier moreThanZero(uint256 amount){
 
@@ -147,6 +155,32 @@ contract draft is Ownable {
     external
     onlyOwner{
         oracleAddress = _newAddress;
+    }
+
+    function repayDebt(address pool, address asset, uint256 amount, uint256 rateMode, address user )
+    external
+    moreThanZero(amount)
+    isAllowedToken(asset)
+    returns(uint256 finalRepay) 
+    {
+        finalRepay = ILendingPool(pool).repay(asset, amount, rateMode, user);
+        if(finalRepay > 0){
+            s_BorrowAmount[user] -= finalRepay;
+        }
+    }
+
+    function withdrawCollateral(address token, address user, uint256 amount)
+    external
+    moreThanZero(amount)
+    isAllowedToken(token)
+    {
+
+        s_collateralDeposited[user][token] -= amount;
+        bool success = collateralToken(token).transferFrom(address(this), user, amount);
+        if( !success ){
+            revert CollateralTokenWithdrawFailed();
+        }
+        revertIfHealthFactorIsBroken(user, token);
     }
 
     ///////////////////////////
