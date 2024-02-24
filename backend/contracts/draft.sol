@@ -7,7 +7,6 @@ interface collateralToken{
 
     function transferFrom(address from, address to, uint256 amount) 
     external 
-    virtual
     returns(bool);
 
 }
@@ -56,6 +55,12 @@ interface ILendingPool{
 
 contract draft is Ownable {
 
+    error CollateralDepositionFailed();
+
+    event CollateralDeposited(address indexed tokenAddress, address indexed user);
+    event CollateralAdded(address indexed tokenAddress);
+    event CollateralRemoved(address indexed tokenAddress);
+
     modifier moreThanZero(uint256 amount){
 
         require(amount > 0, "Amount needs to be more than zero");
@@ -77,30 +82,32 @@ contract draft is Ownable {
     
     mapping (address => uint256 amount) private s_BorrowAmount;
 
-
+    //////////////////// 
+    /// Constructor ///
+    ///////////////////
 
     constructor(address _owner)Ownable(_owner)
     {}
 
-    function depositCollateral(address _tokenAddress, uint256 amountToken)
-    external
-    moreThanZero(amountToken)
-    isAllowedToken(_tokenAddress)
-    {
-        bool success = collateralToken(_tokenAddress).transferFrom(msg.sender, address(this), amountToken);
-    }
+    //////////////////////////
+    /// External Functions///
+    /////////////////////////
 
-    function depositToken(address pool, address token, address user, uint256 amount)
+    function depositCollateralAndLend(address pool, address token, address user, uint256 amount)
     external
     moreThanZero(amount)
+    isAllowedToken(token)
     {
+        depositCollateral(token, amount, user);
         ILendingPool(pool).deposit(token, amount, user, 0);
     }
 
-    function borrowToken(address pool, address token, address user, uint256 amount, uint256 rateMode)
+    function depositCollateralAndBorrowToken(address pool, address token, address user, uint256 amount, uint256 rateMode)
     external
     moreThanZero(amount) 
+    isAllowedToken(token)
     {
+        depositCollateral(token, amount, user);
         ILendingPool(pool).borrow(token, amount, rateMode, 0, user);
     }
 
@@ -109,6 +116,7 @@ contract draft is Ownable {
     onlyOwner
     {
         allowedCollateralTokens[_newAddress] = thresholdAmount;
+        emit CollateralAdded(_newAddress);
     }
 
     function removeCollateralToken(address _newAddress)
@@ -116,5 +124,21 @@ contract draft is Ownable {
     onlyOwner
     {
         delete allowedCollateralTokens[_newAddress];
+        emit CollateralRemoved(_newAddress);
     }
+
+    ///////////////////////////
+    /// Internal Functions ///
+    //////////////////////////
+
+    function depositCollateral(address _tokenAddress, uint256 amountToken, address _user)
+    internal
+    {
+        bool success = collateralToken(_tokenAddress).transferFrom(msg.sender, address(this), amountToken);
+        s_collateralDeposited[_user][_tokenAddress] = amountToken;
+        if( !success){
+            revert CollateralDepositionFailed();
+        }
+        emit CollateralDeposited(_tokenAddress, _user);
     }
+}
