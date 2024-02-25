@@ -1,8 +1,7 @@
 /* dashboard.css */
 
 .dashboard {
-  display: flex;
-  flex-direction: column; /* Stack navbar and content */
+  background-image: url("../../../public/assets/bg.jpg"); /* Path to your background image */
   min-height: 100vh; /* Fill viewport height */
 }
 
@@ -13,10 +12,11 @@
 
 .dropdown-container {
   display: flex;
-  align-items: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  margin-left: 250px;
+  justify-content: flex-start;
+  align-items: start;
+  margin-top: 70px;
+  margin-bottom: 30px;
+  margin-left: 235px;
 }
 
 .dropdown-container select {
@@ -44,35 +44,21 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* ... other dashboard styles */
-
-.left-blocks-container {
-  display: flex;
-  flex-direction: column; /* Stack blocks vertically */
-  margin-left: 50px; /* Adjust distance from left side as needed */
-}
+/* dashboard.css */
 
 .block-container {
   display: flex; /* Enable flexbox layout for horizontal alignment */
-  flex-direction: row; /* Arrange blocks in a row */
-  margin-left: 50px; /* Adjust distance from left side as needed */
-  margin-bottom: 50px;
+  /* Arrange blocks in a row */
+  margin-left: 30px; /* Adjust distance from left side as needed */
 }
 
 /* dashboard.css */
 
 .block-container {
   display: flex; /* Enable flexbox layout for horizontal alignment */
-  flex-direction: row; /* Arrange blocks in a row */
-  margin-left: 50px; /* Adjust distance from left side as needed */
-}
+  flex-direction: row;
 
-/* dashboard.css */
-
-.block-container {
-  display: flex; /* Enable flexbox layout for horizontal alignment */
-  flex-direction: row; /* Arrange blocks in a row */
-  margin-left: 50px; /* Adjust distance from left side as needed */
+  margin-right: 30px; /* Adjust distance from left side as needed */
 }
 
 .block {
@@ -91,17 +77,26 @@
 
 .block-1 {
   /* Add any specific styles for the first block here */
+  text-align: center;
+  padding: 0;
 }
 
 .block-2 {
   /* Add any specific styles for the second block here */
+  text-align: center;
+  padding: 0;
 }
 
 .token-choice {
+  display: flex;
   text-align: center;
-  margin: 20px 0; /* Adjust margin as needed */
-  font-size: 16px;
-  color: #333;
+  flex-direction: row;
+  margin-top: 50px; /* Adjust margin as needed */
+  margin-left: 150px;
+  font-weight: 450;
+  margin-bottom: 25px;
+  font-size: 25px;
+  color: #d8d7d7;
 }
 
 .colored-button {
@@ -114,10 +109,12 @@
 
 .colored-button.button-1 {
   background-color: #007bff; /* Blue */
+  margin-left: 235px;
   color: #fff;
 }
 
 .colored-button.button-2 {
   background-color: #dc3545; /* Red */
   color: #fff;
+  margin-left: 40px;
 }

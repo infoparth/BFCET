@@ -7,7 +7,15 @@ const Dashboard = () => {
   const [totalBorrowed, setTotalBorrowed] = useState(0);
   const [totalLent, setTotalLent] = useState(0);
 
-  const options = ["LAND", "PROPY", "Option 3"];
+  const options = ["LAND", "PROPY"];
+
+  // const getContract = () => {
+  //   const provider = new ethers.providers.Web3Provider(ethWallet);
+  //   const signer = provider.getSigner();
+  //   const atmContract = new ethers.Contract(contractAddress, atmABI, signer);
+
+  //   setContract(atmContract);
+  // };
 
   // ... other dashboard logic and data
 
@@ -18,7 +26,8 @@ const Dashboard = () => {
         {/* Container for both blocks with margin from top */}
         <div className="block-container" style={{ marginTop: "20px" }}>
           <div className="block block-1">
-            <h3>Total Lent</h3>
+            <h3>Total Tokens Lent</h3>
+
             <span>{totalLent}</span>
           </div>
           <div className="block block-2">
@@ -43,8 +52,8 @@ const Dashboard = () => {
         </div>
 
         <div className="button-container">
-          <button className="colored-button button-1">Button 1</button>
-          <button className="colored-button button-2">Button 2</button>
+          <button className="colored-button button-1">Lend Asset</button>
+          <button className="colored-button button-2">Deposit Asset</button>
         </div>
 
         <div className="content-area">{/* ... other dashboard content */}</div>
