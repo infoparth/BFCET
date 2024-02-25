@@ -1,0 +1,68 @@
+.App {
+  text-align: center;
+}
+/* Styles for dropdown header */
+.dropdown-header {
+  cursor: pointer;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+}
+
+/* Styles for dropdown select */
+.dropdown-container select {
+  display: block;
+  width: 100%;
+  padding: 10px;
+}
+
+.App-header {
+  background-color: #232222;
+  border-bottom: 1px solid white;
+  padding: 1px;
+  color: white;
+}
+
+.App-body {
+  justify-content: space-around;
+  background-color: #232222;
+  align-items: center;
+  padding: 5px;
+}
+
+.wallet {
+  margin-top: 10px;
+  background-color: #232222;
+  border: 1.5px solid white;
+  height: 100px;
+  width: 300px;
+  margin-right: 20px;
+  border-radius: 10px;
+}
+
+.dropdown-container {
+  display: flex;
+  margin-top: 25px;
+  height: 20px;
+  width: 60px;
+  margin-bottom: 30px;
+  margin-left: 25px;
+  justify-content: left;
+}
+
+.image-container {
+  display: flex;
+}
+
+.content-container {
+  flex-grow: 1;
+}
+
+.App-footer {
+  background-color: #232222;
+  padding: 5px;
+  color: white;
+  border-top: 1px solid white;
+  position: fixed;
+  width: 100%;
+}

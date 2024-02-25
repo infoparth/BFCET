@@ -1,0 +1,41 @@
+.landing-page {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-page-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensure image covers the entire background */
+  z-index: -1; /* Place image behind content */
+}
+
+.landing-page-content {
+  text-align: center;
+  color: #fff; /* Adjust text color for better readability */
+}
+
+.product-name {
+  font-size: 3rem; /* Adjust font size as needed */
+  margin-bottom: 20px;
+  color: #007bff;
+}
+
+.dashboard-button {
+  background-color: #007bff; /* Customize button color */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.link-button {
+  color: white;
+}

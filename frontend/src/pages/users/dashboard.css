@@ -1,0 +1,98 @@
+/* dashboard.css */
+
+.dashboard {
+  display: flex;
+  flex-direction: column; /* Stack navbar and content */
+  min-height: 100vh; /* Fill viewport height */
+}
+
+.content-area {
+  flex: 1; /* Take up remaining space */
+  padding: 20px;
+}
+
+.dropdown-container {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 250px;
+}
+
+.dropdown-container select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 200px;
+}
+
+.fill-space {
+  /* Adjust styles based on your desired content */
+  /* Example for a card layout: */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.fill-space .card {
+  /* Style individual cards */
+  /* Example styles: */
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ... other dashboard styles */
+
+.left-blocks-container {
+  display: flex;
+  flex-direction: column; /* Stack blocks vertically */
+  margin-left: 50px; /* Adjust distance from left side as needed */
+}
+
+.block-container {
+  display: flex; /* Enable flexbox layout for horizontal alignment */
+  flex-direction: row; /* Arrange blocks in a row */
+  margin-left: 50px; /* Adjust distance from left side as needed */
+  margin-bottom: 50px;
+}
+
+/* dashboard.css */
+
+.block-container {
+  display: flex; /* Enable flexbox layout for horizontal alignment */
+  flex-direction: row; /* Arrange blocks in a row */
+  margin-left: 50px; /* Adjust distance from left side as needed */
+}
+
+/* dashboard.css */
+
+.block-container {
+  display: flex; /* Enable flexbox layout for horizontal alignment */
+  flex-direction: row; /* Arrange blocks in a row */
+  margin-left: 50px; /* Adjust distance from left side as needed */
+}
+
+.block {
+  /* ... other block styles */
+  width: 300px; /* Adjust width as needed */
+  height: 50px; /* Adjust height as needed */
+  background-color: #f0f0f0; /* Adjust background color as needed */
+  border-radius: 15px; /* Smooth edges */
+  margin-right: 10px; /* Optional spacing between blocks */
+}
+
+.dropdown-container {
+  /* Place the dropdown container below the blocks */
+  margin-top: 5px; /* Adjust spacing as needed */
+}
+
+.block-1 {
+  /* Add any specific styles for the first block here */
+}
+
+.block-2 {
+  /* Add any specific styles for the second block here */
+}
