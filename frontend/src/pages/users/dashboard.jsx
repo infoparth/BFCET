@@ -4,8 +4,10 @@ import Navbar from "../../components/navbar";
 
 const Dashboard = () => {
   const [selectedOption, setSelectedOption] = useState("Option 1");
+  const [totalBorrowed, setTotalBorrowed] = useState(0);
+  const [totalLent, setTotalLent] = useState(0);
 
-  const options = ["Option 1", "Option 2", "Option 3"];
+  const options = ["LAND", "PROPY", "Option 3"];
 
   // ... other dashboard logic and data
 
@@ -15,9 +17,16 @@ const Dashboard = () => {
         <Navbar />
         {/* Container for both blocks with margin from top */}
         <div className="block-container" style={{ marginTop: "20px" }}>
-          <div className="block block-1"></div>
-          <div className="block block-2"></div>
+          <div className="block block-1">
+            <h3>Total Lent</h3>
+            <span>{totalLent}</span>
+          </div>
+          <div className="block block-2">
+            <h3>Total Borrowed</h3>
+            <span>{totalBorrowed}</span>
+          </div>
         </div>
+        <div className="token-choice">Choose your Token to Lend/Borrow</div>
 
         {/* Dropdown menu below the blocks */}
         <div className="dropdown-container">
@@ -31,6 +40,11 @@ const Dashboard = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="button-container">
+          <button className="colored-button button-1">Button 1</button>
+          <button className="colored-button button-2">Button 2</button>
         </div>
 
         <div className="content-area">{/* ... other dashboard content */}</div>

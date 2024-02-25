@@ -78,7 +78,7 @@
 .block {
   /* ... other block styles */
   width: 300px; /* Adjust width as needed */
-  height: 50px; /* Adjust height as needed */
+  height: 100px; /* Adjust height as needed */
   background-color: #f0f0f0; /* Adjust background color as needed */
   border-radius: 15px; /* Smooth edges */
   margin-right: 10px; /* Optional spacing between blocks */
@@ -95,4 +95,29 @@
 
 .block-2 {
   /* Add any specific styles for the second block here */
+}
+
+.token-choice {
+  text-align: center;
+  margin: 20px 0; /* Adjust margin as needed */
+  font-size: 16px;
+  color: #333;
+}
+
+.colored-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px; /* Adjust margin as needed */
+  cursor: pointer;
+}
+
+.colored-button.button-1 {
+  background-color: #007bff; /* Blue */
+  color: #fff;
+}
+
+.colored-button.button-2 {
+  background-color: #dc3545; /* Red */
+  color: #fff;
 }
