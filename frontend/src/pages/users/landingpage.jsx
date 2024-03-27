@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 // import { ConnectWallet, useAddress } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import { useNavigate } from "react-router-dom";
-
 const LandingPage = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState(null);
@@ -13,50 +12,9 @@ const LandingPage = () => {
 
   const navigate = useNavigate();
 
-  //   const address = useAddress();
-
-  const getWallet = async () => {
-    if (window.ethereum) {
-      setEthWallet(window.ethereum);
-    }
-
-    if (ethWallet) {
-      const account = await ethWallet.request({ method: "eth_accounts" });
-      handleAccount(account);
-    }
-  };
-
-  const handleAccount = (account) => {
-    if (account) {
-      console.log("Account connected: ", account);
-      setAccount(account);
-    } else {
-      console.log("No account found");
-    }
-  };
-
-  const connectWallet = async () => {
-    if (!ethWallet) {
-      alert("MetaMask wallet is required to connect");
-      return;
-    }
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts");
-      const accounts = await provider.listAccounts();
-      setAddress(accounts[0]);
-      setIsConnected(true);
-      // Assuming you're using react-router-dom v6
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error connecting wallet:", error);
-      // Handle error appropriately, e.g., display an error message to the user
-    }
-  };
-
-  useEffect(() => {
-    getWallet();
-  }, []);
+  function onClicks() {
+    navigate("/dashboard");
+  }
 
   return (
     <div className="landing-page">
@@ -72,8 +30,8 @@ const LandingPage = () => {
             Go to Dashboard
           </Link>
         ) : (
-          <button className="dashboard-button" onClick={connectWallet}>
-            Connect Wallet
+          <button className="dashboard-button" onClick={onClicks}>
+            Get In
           </button>
         )}
       </div>
@@ -82,3 +40,12 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
+
+
+
+
+
+
+
+

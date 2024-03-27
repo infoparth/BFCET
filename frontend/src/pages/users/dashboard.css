@@ -17,6 +17,20 @@
   margin-top: 70px;
   margin-bottom: 30px;
   margin-left: 235px;
+  border-radius: 5px;
+}
+
+.input-container {
+  width: 360px;
+  margin-left: 150px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-container input {
+  height: 20px;
+  width: 160px;
+  border-radius: 5px;
 }
 
 .dropdown-container select {
@@ -109,12 +123,12 @@
 
 .colored-button.button-1 {
   background-color: #007bff; /* Blue */
-  margin-left: 235px;
+  margin-left: 190px;
   color: #fff;
 }
 
 .colored-button.button-2 {
   background-color: #dc3545; /* Red */
   color: #fff;
-  margin-left: 40px;
+  margin-left: 110px;
 }

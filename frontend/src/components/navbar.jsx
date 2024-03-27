@@ -3,10 +3,9 @@ import "./navbar.css";
 
 const Navbar = () => {
   const [userWalletAddress, setUserWalletAddress] = useState("0x..."); // Replace with actual address or a placeholder
-
   return (
     <nav className="navbar">
-      <div className="navbar-brand">Your Brand Name</div>
+      <div className="navbar-brand">Real-Chain</div>
       <ul className="navbar-links">
         <li>
           <a href="#">Home</a>
