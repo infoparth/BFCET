@@ -309,8 +309,6 @@ contract draft is Ownable {
 
     /// withdraw amount should be in USDT and then corresponding number of RWA tokens should be issued
     {
-
-        uint256 _userCollateral = s_collateralDeposited[user][token];
         
         // calculating the USD value of the requested RWA amount
         uint256 _usdValueOfCollateral = calculateUSDFromRWA(amount, token, usdcCollateralAddress);
@@ -410,6 +408,7 @@ contract draft is Ownable {
 
     function getCollateralValueOfUser(address _token, address _user)
     private 
+    view
     returns(uint256 borrowAmount, uint256 userCollateralValue)
     {
         borrowAmount = s_BorrowAmount[_user][_token];
@@ -433,6 +432,7 @@ contract draft is Ownable {
 
     function _healthFactor(address collateralAddress, address user)
     private
+    view
     returns(uint256)
     {
         (uint256 totalBorrowed, uint256 collateralValueInUsd) = getCollateralValueOfUser(collateralAddress, user);
@@ -441,6 +441,7 @@ contract draft is Ownable {
 
     function revertIfHealthFactorIsBroken(address user, address _collateralToken)
     private
+    view
     {
         uint256 userHealthFactor = _healthFactor(_collateralToken, user);
         if(userHealthFactor < MIN_HEALTH_FACTOR)
@@ -481,9 +482,6 @@ contract draft is Ownable {
             uint8 lendingTokenDecimals = allowedDepositTokens[tokenToLend];
             require(lendingTokenDecimals <= 18, "Token decimals should be less than or equal to 18");
             if (lendingTokenDecimals < 18){
-            // Calculate the conversion factor
-            uint256 conversionFactor = (18 - uint256(lendingTokenDecimals));
-
             uint256 finalVal = _amountToBeConverted/(10 ** uint256(collateralTokenDecimals)) * (10 ** uint256(lendingTokenDecimals));
         
             // Convert the amount to desired decimals
